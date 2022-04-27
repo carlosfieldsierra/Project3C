@@ -1,0 +1,24 @@
+README
+
+Please do not distribute these files.
+
+There isn't a lot of comments, I apologize. They're really just proof-of-concept code.
+It does use iffalse now, so we should be good.
+
+Build using make:
+	make
+
+Delete all generated files:
+	make clean
+
+Run:
+
+java MiniJavaC filename_to_compile.java
+
+No classpath is necessary due to the expanded jars in the directory structure.
+The run dumps the symbol table and the IR list.
+
+Let me know if there are any issues.
+
+Jonathan Misurda
+jmisurda@arizona.edu
