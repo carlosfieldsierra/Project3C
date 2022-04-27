@@ -1,19 +1,10 @@
 Test2_Start:
 main:
 	addi $t0, $zero, 9
-	add $a0,$zero,$t1
 	add $a0,$zero,$t0
-	# Function Prelouge
-	addiu $sp, $sp, -32
-	sw    $fp, 0($sp)
-	sw    $ra, 4($sp)
-	sw    $a0, 8($sp)
-	sw    $a1, 16($sp)
-	sw    $a2, 20($sp)
-	sw    $a3, 28($sp)
-	addiu $fp, $sp, 32
 	jal Test2_Start
-	add $a0,$zero,$t2
+	add $t1, $zero, $v0
+	add $a0,$zero,$t1
 	jal _system_out_println
 	jal _system_exit
 

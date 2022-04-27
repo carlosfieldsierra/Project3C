@@ -12,6 +12,8 @@ public class RegisterAllocator {
     }
 
     
+    
+
     public String allocateReg(String name){
         if (!varToReg.containsKey(name)){
             return makeTempReg(name);

@@ -3,6 +3,8 @@ import ir.*;
 import visitor.symbol.MethodSymbol;
 import visitor.symbol.Symbol;
 import registerallocator.RegisterAllocator;
+import syntaxtree.IdentifierType;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -24,8 +26,14 @@ public class MipsGenerator {
         Register Allocator
     */
     RegisterAllocator regAlloc;
-    
+    /* 
+        Current Class
+    */
     String curClass;
+    /* 
+        param num
+    */
+    int paramNum = 0;
 
     
     
@@ -84,7 +92,6 @@ public class MipsGenerator {
                 Generate mips on method per method basis
             */
             for (Quadruple quadruple: irList){
-                // System.out.println("\t"+quadruple.getClass());
                 System.out.println("\t\t"+quadruple+"\n");
                 methodFactory(quadruple);
                 // System.out.println("\n");
@@ -179,6 +186,7 @@ public class MipsGenerator {
     
     public void generate(CopyQuadruple instruction) throws IOException{
         Symbol arg1 = instruction.getFirstArgument();
+        System.out.println(arg1.getType());
         Symbol res = instruction.getResult();
         /* 
             If a constant
@@ -194,22 +202,40 @@ public class MipsGenerator {
     }
 
     public void generate(ParameterQuadruple instruction) throws IOException{
+        if (paramNum>3){
+            System.exit(-1);
+        }
+        
         Symbol arg1 = instruction.getFirstArgument();
+        System.out.println(arg1.getType());
+        if (arg1.getType() instanceof IdentifierType ){
+            return;
+        }
 
         if (arg1 instanceof visitor.symbol.VariableSymbol){
 
-            this.fw.write("\tadd $a0,$zero,"+regAlloc.allocateReg(arg1.getName().s)+"\n");
+            this.fw.write("\tadd $a"+paramNum+",$zero,"+regAlloc.allocateReg(arg1.getName().s)+"\n");
+            paramNum+=1;
         }
         
     }
     
     public void generate(CallQuadruple instruction) throws IOException{
+        // Set back to zero
+        paramNum=0;
+
         /* 
             Get arg1 and result
         */  
         MethodSymbol arg1 =(MethodSymbol) instruction.getFirstArgument();
-
         Symbol res = instruction.getResult();
+        /* 
+            Get result reg
+        */
+        String resReg="";
+        if (res!=null){
+            resReg = regAlloc.allocateReg(res.getName().s);
+        }
         /* 
             Get method name
         */
@@ -225,16 +251,19 @@ public class MipsGenerator {
             /* 
                 Function Prelouge
             */
-            this.fw.write("\t# Function Prelouge\n");
-            this.fw.write("\taddiu $sp, $sp, -32\n");
-            this.fw.write("\tsw    $fp, 0($sp)\n");
-            this.fw.write("\tsw    $ra, 4($sp)\n");
-            this.fw.write("\tsw    $a0, 8($sp)\n");
-            this.fw.write("\tsw    $a1, 16($sp)\n");
-            this.fw.write("\tsw    $a2, 20($sp)\n");
-            this.fw.write("\tsw    $a3, 28($sp)\n");
-            this.fw.write("\taddiu $fp, $sp, 32\n");
+            // this.fw.write("\t# Function Prelouge\n");
+            // this.fw.write("\taddiu $sp, $sp, -32\n");
+            // this.fw.write("\tsw    $fp, 0($sp)\n");
+            // this.fw.write("\tsw    $ra, 4($sp)\n");
+            // this.fw.write("\tsw    $a0, 8($sp)\n");
+            // this.fw.write("\tsw    $a1, 16($sp)\n");
+            // this.fw.write("\tsw    $a2, 20($sp)\n");
+            // this.fw.write("\tsw    $a3, 28($sp)\n");
+            // this.fw.write("\taddiu $fp, $sp, 32\n");
             this.fw.write("\tjal "+curClass+"_"+methodName+"\n");
+            if (res!=null){
+                this.fw.write("\tadd "+resReg+", $zero, "+"$v0\n");
+            }
         }
 
        
@@ -295,7 +324,7 @@ public class MipsGenerator {
 
     public void generate(ReturnQuadruple instruction){
         Symbol arg1 = instruction.getFirstArgument();
-        
+        System.out.println(arg1.getClass());
         if (arg1 instanceof visitor.symbol.VariableSymbol){
             
         }
