@@ -42,7 +42,7 @@ public class NameVisitor implements Visitor {
 	symbolTable.enterScope(main);
     
 	n.i1.accept(this);
-	
+
 	MethodSymbol m = new MethodSymbol(new IdentifierType("void"), main);
 	m.addParameter(new VariableSymbol(new IdentifierType("String []"), n.i2));
 	
@@ -78,6 +78,7 @@ public class NameVisitor implements Visitor {
     }
     for ( int i = 0; i < n.ml.size(); i++ ) {
 		MethodDecl m = (MethodDecl)n.ml.elementAt(i);
+
 		MethodSymbol ms = new MethodSymbol(m.t,m.i);
 		c.addMethod(ms);
 		FormalList fl = m.fl;
@@ -114,6 +115,7 @@ public class NameVisitor implements Visitor {
     }
     for ( int i = 0; i < n.ml.size(); i++ ) {
         MethodDecl m = (MethodDecl)n.ml.elementAt(i);
+
 		MethodSymbol ms = new MethodSymbol(m.t,m.i);
 		c.addMethod(ms);
 		FormalList fl = m.fl;
@@ -155,6 +157,7 @@ public class NameVisitor implements Visitor {
     n.i.accept(this);
 
 	VariableSymbol thisVar = new VariableSymbol(new IdentifierType(symbolTable.getScopeName().s), new Identifier("this"));
+
 
 	MethodSymbol ms = new MethodSymbol(n.t,n.i);
 	symbolTable.addSymbol(ms);

@@ -4,43 +4,48 @@ import java.util.*;
 
 public class RegisterAllocator {
     public HashMap<String,String> varToReg;
-    int tempNum;
+    private final int MAX_REGS = 18;
+    private int idNum;
+
 
     public RegisterAllocator(){
         varToReg = new HashMap<>();
-        tempNum = 0;
+        idNum = 0;
     }
 
-    
-    
-
-    public String allocateReg(String name){
-        if (!varToReg.containsKey(name)){
-            return makeTempReg(name);
+    public void checkForRegOverFlow(){
+        if (idNum==MAX_REGS){
+            System.out.println("\nError: Ran out of registers\n");
+            System.exit(-1);
         }
-        return varToReg.get(name);
     }
 
-
-    private String makeTempReg(String name){
-        /* 
-            Error if more than 9 temp regs
-        */
-        if (tempNum>9){
-            System.out.println("\nError - Out of temp registers\n");
-            System.exit(0);
-        }
+    /* 
+        Allocate Non Map Reg 
+        ()
+    */
+    public String allocateNonMapReg(){
         /*  
-            Make temp regs
+            Check for reg overflow
         */
-        String tempReg = "$t"+tempNum;
-        tempNum++;
-        /* 
-            Store in map
+        checkForRegOverFlow();
+        /*
+            Assign reg
         */
-        varToReg.put(name,tempReg);
+        String reg = "";
 
-        return tempReg;
+        if (idNum<10){
+            reg="$t"+idNum;
+        } else {
+            reg="$s"+(idNum-10);
+        }
+        
+        idNum+=1;
+
+        return reg;
     }
+    
+    
 
+   
 }

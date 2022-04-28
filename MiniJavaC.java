@@ -5,6 +5,8 @@ import java.util.*;
 import ir.Quadruple;
 import visitor.*;
 import visitor.symbol.*;
+import visitor.symbol.SymbolTable.Binding;
+import syntaxtree.Identifier;
 import syntaxtree.Program;
 import codegen.MipsGenerator;
 
@@ -47,11 +49,19 @@ public class MiniJavaC {
 			irVisitor.visit(p);
 
 			/* 
+				Handle pre reg allocation
+			*/
+			handlePreRegAlloc(table);
+
+
+			/* 
 				Mips Generator
 			*/
 			String filePath = args[0];
 			MipsGenerator mipsGenerator = new MipsGenerator(filePath,irVisitor.methods);
 			mipsGenerator.generateMips();
+
+
 
 			// irVisitor.dumpIR();
 			// System.out.println(irVisitor.methods.get("Tree_Insert"));
@@ -61,6 +71,13 @@ public class MiniJavaC {
 			System.err.println("ERROR: Unable to open file: " + args[0]);
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
+		}
+	}
+
+	public static void handlePreRegAlloc(SymbolTable table){
+		HashMap<Identifier, Binding> classes = table.getClasses();
+		for (Identifier classId: classes.keySet()){
+			System.out.println(classId);
 		}
 	}
 }

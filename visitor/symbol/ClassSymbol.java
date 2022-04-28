@@ -11,13 +11,20 @@ public class ClassSymbol extends Symbol
 	private Type extendsType;
 	private ClassSymbol baseClass;
 
+	private int size;
+	private int offset;
+
 	public ClassSymbol(Identifier n)
 	{
 		type = new IdentifierType(n.s);
 		name = n;
 		methods = new ArrayList<MethodSymbol>();
 		variables = new ArrayList<VariableSymbol>();
+		size = -1;
+		offset = -1;
 	}
+	
+	
 	
 	public ClassSymbol(Identifier n, Identifier e)
 	{
@@ -54,6 +61,10 @@ public class ClassSymbol extends Symbol
 		variables.addAll(c.variables);
 	}
 
+	public  String getClassName(){
+		return name.s;
+	}
+
 	public String toString() {
 		String c = "";
 		if(extendsType != null)
@@ -72,4 +83,55 @@ public class ClassSymbol extends Symbol
 		}
 		return c;
 	}
+
+	/* 	
+		Used to caluclate the size
+	*/
+	public int getSize(){
+		if (this.size==-1){
+			this.size = this.reCalcSize();
+		}
+		return this.size;
+	}
+
+	private int reCalcSize(){
+		int curSize = 0;
+		if (baseClass!=null){
+			curSize+= baseClass.getSize();
+		}
+		curSize += variables.size()*4;
+		return curSize;
+	}
+
+	
+	/* 
+		Used to calcule the offset
+	*/
+	public int getOffset(){
+		if (this.offset==-1){
+			this.offset = this.reCalcOffset();
+		}
+		return this.offset;
+	}
+
+	public int reCalcOffset(){
+		int curOffset = 0;
+		if (baseClass!=null) curOffset=baseClass.getOffset();
+		return 0;
+	}
+
+
+	/* 	
+		Use to make the var offsets
+	*/
+	public void setVarsOffsets(){
+		int oldOffset = this.getOffset();
+		int newOffset = 0;
+
+		for (VariableSymbol var: variables){
+			var.setOffset(oldOffset+newOffset);
+			newOffset+=4;
+		}
+	}
+
 }

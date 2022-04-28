@@ -50,7 +50,6 @@ public class IRVisitor implements SymbolVisitor
 
 	public IRVisitor(SymbolTable s) {
 		symbolTable = s;
-
 		//Add two "system calls" to the symbol table. We'll call assembly routines for them directly.
 		MethodSymbol print = new MethodSymbol(new IdentifierType("void"), new Identifier("System.out.println"));
 		print.addParameter(new VariableSymbol(new IntegerType(), new Identifier("x")));

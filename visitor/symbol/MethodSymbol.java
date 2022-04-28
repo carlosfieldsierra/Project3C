@@ -2,10 +2,13 @@ package visitor.symbol;
 
 import syntaxtree.*;
 import java.util.ArrayList;
+import registerallocator.RegisterAllocator;
+
 
 public class MethodSymbol extends Symbol
 {
 	private ArrayList<VariableSymbol> parameters;
+	public String className;
 
 	public MethodSymbol(Type r, Identifier t)
 	{
@@ -30,7 +33,19 @@ public class MethodSymbol extends Symbol
 		return type.toString() + " " + name.s + "(" + s + ")";
 	}
 
+
+
 	public ArrayList<VariableSymbol> getParameters() {
 		return parameters;
+	}
+
+
+	/* 
+		Set the registers for the parameters
+	*/
+	public void setParamRegisters(RegisterAllocator rAllocator){
+		for (VariableSymbol var:parameters){
+			var.setRegister(rAllocator.allocateNonMapReg());
+		}
 	}
 }

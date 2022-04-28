@@ -14,9 +14,17 @@ public class SymbolTable {
 	Identifier rootName = new Identifier("Root");
 
 	Binding current = root;
-	Identifier currentName = rootName;
+	public Identifier currentName = rootName;
 
-	private class Binding {
+	/* 
+		Get all the classes
+	*/
+	public HashMap<Identifier, Binding> getClasses(){
+		return root.getClasses();
+	} 
+
+
+	public class Binding {
 		private HashMap<Identifier, Symbol> table;
 		private HashMap<Identifier, Binding> children;
 		private Binding parent;
@@ -25,6 +33,10 @@ public class SymbolTable {
 		public Binding() {
 			table = new HashMap<Identifier, Symbol>();
 			children = new HashMap<Identifier, Binding>();
+		}
+
+		public HashMap<Identifier, Binding> getClasses(){
+			return children;
 		}
 
 		public boolean isDefined(Identifier i) {
@@ -84,6 +96,7 @@ public class SymbolTable {
 				children.get(s).dump();
 			}
 		}
+
 	}
 
 	public void addSymbol(Symbol s) {
