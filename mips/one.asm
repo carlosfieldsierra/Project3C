@@ -1,8 +1,19 @@
-Start:
 main:
-	li $t0, 9
+	# CopyQuadruple
+	li $t0, 2
+	# ParameterQuadruple
+	move $a0, $t1
+	# ParameterQuadruple
+	move $a1, $t0
+	# CallQuadruple
+	
+	# ParameterQuadruple
+	move $a0, $t2
+	# CallQuadruple
 	jal _system_out_println
+	# CallQuadruple
 	jal _system_exit
+start:
 
 # main is testing the functions I've provided. You will include this code at the end
 # of your output file so that you may call these system services.

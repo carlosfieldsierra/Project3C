@@ -1,4 +1,6 @@
 import java_cup.runtime.Symbol;
+import registerallocator.RegisterAllocator;
+
 import java.io.*;
 import java.util.*;
 
@@ -51,14 +53,15 @@ public class MiniJavaC {
 			/* 
 				Handle pre reg allocation
 			*/
-			handlePreRegAlloc(table);
+			RegisterAllocator rAllocator = new RegisterAllocator();
+			handlePreRegAlloc(table,rAllocator);
 
 
 			/* 
 				Mips Generator
 			*/
 			String filePath = args[0];
-			MipsGenerator mipsGenerator = new MipsGenerator(filePath,irVisitor.methods);
+			MipsGenerator mipsGenerator = new MipsGenerator(filePath,rAllocator,irVisitor.methods);
 			mipsGenerator.generateMips();
 
 
@@ -73,11 +76,25 @@ public class MiniJavaC {
 			e.printStackTrace(System.err);
 		}
 	}
+	
 
-	public static void handlePreRegAlloc(SymbolTable table){
+	public static void handlePreRegAlloc(SymbolTable table, RegisterAllocator rAllocator){
 		HashMap<Identifier, Binding> classes = table.getClasses();
 		for (Identifier classId: classes.keySet()){
-			System.out.println(classId);
+			/* 
+				Set var offsets for classes
+			*/
+			ClassSymbol cls = (ClassSymbol) table.getClassByName(classId);
+			cls.setVarsOffsets();
+			/* 
+				Set regs for vars in methods
+			*/
+			ArrayList<MethodSymbol> methods = cls.getMethods();
+			for (MethodSymbol mtd: methods){
+				mtd.setParamRegisters(rAllocator);
+			}
+			
 		}
+
 	}
 }
