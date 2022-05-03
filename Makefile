@@ -5,7 +5,7 @@ all:
 	java -jar java-cup-11b.jar -interface -parser MiniJavaParser minijava.cup
 	javac MiniJavaC.java
 	java MiniJavaC test/$(file).java
-	# java -jar Mars4_5.jar mips/$(file).asm
+	java -jar Mars4_5.jar mips/$(file).asm
 	
 
 

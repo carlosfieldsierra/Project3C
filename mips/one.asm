@@ -1,19 +1,65 @@
 main:
 	# CopyQuadruple
-	li $t0, 2
+	li $t0, 1
+	# CopyQuadruple
+	li $t1, 1
+	# CopyQuadruple
+	li $t2, 1
 	# ParameterQuadruple
-	move $a0, $t1
+	move $a0, $t3
 	# ParameterQuadruple
 	move $a1, $t0
-	# CallQuadruple
-	
 	# ParameterQuadruple
-	move $a0, $t2
+	move $a2, $t1
+	# ParameterQuadruple
+	move $a3, $t2
+	# CallQuadruple
+	jal start
+	move $t4, $v0
+	# CopyQuadruple
+	li $t5, 2
+	# CopyQuadruple
+	li $t6, 2
+	# CopyQuadruple
+	li $t7, 2
+	# ParameterQuadruple
+	move $a0, $t8
+	# ParameterQuadruple
+	move $a1, $t5
+	# ParameterQuadruple
+	move $a2, $t6
+	# ParameterQuadruple
+	move $a3, $t7
+	# CallQuadruple
+	jal done
+	move $t9, $v0
+	# AssignmentQuadruple
+	move $s0, $t4
+	add $s0, $s0, $t9
+	# ParameterQuadruple
+	move $a0, $s0
 	# CallQuadruple
 	jal _system_out_println
 	# CallQuadruple
 	jal _system_exit
+done:
+	# AssignmentQuadruple
+	move $t3, $a1
+	add $t3, $t3, $a2
+	# AssignmentQuadruple
+	move $t0, $t3
+	add $t0, $t0, $a3
+	move $v0, $t0
+	jr $ra
 start:
+	# AssignmentQuadruple
+	move $t3, $a1
+	add $t3, $t3, $a2
+	# AssignmentQuadruple
+	move $t0, $t3
+	add $t0, $t0, $a3
+	move $v0, $t0
+	jr $ra
 
 # main is testing the functions I've provided. You will include this code at the end
 # of your output file so that you may call these system services.

@@ -98,4 +98,19 @@ public class RegisterAllocator {
     }
 
    
+
+    /* 
+        Set param reg
+    */
+    public void allocatePramReg(String name,String reg){
+       
+        varToReg.put(name,reg);
+       
+    }
+
+    public String getPramReg(String name){
+        allocateTempReg(name);
+        return varToReg.get(name);
+   
+    }
 }

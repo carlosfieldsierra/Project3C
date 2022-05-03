@@ -90,11 +90,42 @@ public class MipsGenerator {
     */
     public void generateMips(){
         /* 
+            Put main first
+        */
+        // Methods Ir
+        ArrayList<Quadruple> irList = methodsIR.get("main");
+        /* 
+            Write method label
+        */
+        try {
+           
+            fw.write("main"+":\n");
+           
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("main");
+        /* 
+            Generate mips on method per method basis
+        */
+        for (Quadruple quadruple: irList){
+            System.out.println("\t\t"+quadruple.getClass());
+            System.out.println("\t\t"+quadruple+"\n");
+            methodFactory(quadruple);
+            // System.out.println("\n");
+        }
+
+
+        /* 
             Loop through methods Ir
         */
         for (String methodNameKey: methodsIR.keySet()){
+            if (methodNameKey.equals("main")){
+                continue;
+            }
+
             // Methods Ir
-            ArrayList<Quadruple> irList = methodsIR.get(methodNameKey);
+            irList = methodsIR.get(methodNameKey);
         
             /* 
                 Write method label
@@ -260,7 +291,8 @@ public class MipsGenerator {
         if (resRegType == TEMP){
             resReg = regAlloc.allocateTempReg(res.getName().s);
         } else if (resRegType == VAR){
-            resReg = regAlloc.allocateOffsetReg(0);
+            resReg = regAlloc.getPramReg(res.getName().s);
+            System.out.println(resReg);
         }
         /* 
             Handle arg1 reg
@@ -280,6 +312,7 @@ public class MipsGenerator {
 					temp = "lw " + resultReg + ", " + arg1.getOffset() + "($a0)\n";
 				}
             */
+            
         }
 
         /* 
@@ -357,6 +390,14 @@ public class MipsGenerator {
     }
 
 
+    /*
+        Saves all the registers in the prelouge
+    */
+    private void prelouge(){
+
+    }
+    
+
     public void generate(CallQuadruple instruction) throws IOException{
         /* 
             Set function param back to zero
@@ -367,28 +408,65 @@ public class MipsGenerator {
         */
         MethodSymbol arg1 =(MethodSymbol) instruction.getFirstArgument();
         String methodName = arg1.getName().s;
-        /*  
-            Mips Code
+        /* 
+            Get result
         */
-        String mipsCode = "";
+        Symbol res = instruction.getResult();
+        String resReg = "";
+        if (res!=null) {
+            int resRegType = getRegType(res.getName().s);
+            if (resRegType==TEMP){
+                resReg = regAlloc.allocateTempReg(res.getName().s);
+            } else if (resRegType==VAR){
+                /* 
+                    @TODO
+                */
+            }
+        }
         /* 
             Check if it's one of the linked function
         */
+        writeMipsCode("# CallQuadruple");
+
         if (methodName.equals("System.out.println")){
-            mipsCode+="jal _system_out_println";
+            String mipsCode="jal _system_out_println";
+            writeMipsCode(mipsCode);
         } else if (methodName.equals("System.exit")){
-            mipsCode+="jal _system_exit";
+            String mipsCode="jal _system_exit";
+            writeMipsCode(mipsCode);
         } else {
             /* 
                 Prelouge
             */
+            
+
+            /* 
+                Set the variable params
+            */
+            ArrayList<VariableSymbol> parameters = arg1.getParameters();
+            int i=0;
+            for (VariableSymbol param: parameters){
+                regAlloc.allocatePramReg(param.getName().s, "$a"+(i+1));
+                i++;
+            }
+            /* 
+                Call function
+            */
+            
+            writeMipsCode("jal "+methodName);
 
             /* 
                Epilouge
             */
         }
-        writeMipsCode("# CallQuadruple");
-        writeMipsCode(mipsCode);
+        
+        /* 
+            Check if store the result back in a temp
+            or a variable
+        */
+        if (res!=null){
+            writeMipsCode("move "+resReg+", "+"$v0");
+        }
         
     }
 
@@ -439,16 +517,7 @@ public class MipsGenerator {
         } else if (arg1RegType == TEMP){
             mipsCode = "move "+resReg+", "+regAlloc.allocateTempReg(arg1.getName().s);
         } else if (arg1RegType == VAR){
-            /* 
-                if(arg1.getOffset() == -1)
-				{
-					temp = "move " + resultReg + ", " + arg1.getRegister() + "\n";
-				}
-				else //Class variable
-				{
-					temp = "lw " + resultReg + ", " + arg1.getOffset() + "($a0)\n";
-				}
-            */
+            mipsCode = "move "+resReg+", "+regAlloc.getPramReg(arg1.getName().s); 
         }
 
         /* 
@@ -465,51 +534,67 @@ public class MipsGenerator {
         String arg2Str = "";
         if (arg2RegType == CONST){
             arg2Str=arg2.getName().s;
-            if      (op==instruction.ADD) opStr="addi";
-            else if (op==instruction.SUB) opStr="subi";
-            else if (op==instruction.MUL){
+            if      (op==AssignmentQuadruple.ADD) opStr="addi";
+            else if (op==AssignmentQuadruple.SUB) opStr="subi";
+            else if (op==AssignmentQuadruple.MUL){
                 String tempReg  = regAlloc.allocateOffsetReg(numTempRegs);
                 numTempRegs++;
                 writeMipsCode("li "+tempReg+", "+arg2Str);
                 opStr="mul";
                 writeMipsCode("mul "+resReg+", "+resReg+", "+tempReg);   
             }
-            else if (op==instruction.LT ) opStr="slti";
-            else if (op==instruction.AND) opStr="andi";
+            else if (op==AssignmentQuadruple.LT ) opStr="slti";
+            else if (op==AssignmentQuadruple.AND) opStr="andi";
 
             /* 
                 Mul was differnt format needed two instructions
                 the rest follow the same format
             */
-            if (op!=instruction.MUL) writeMipsCode(opStr+" "+resReg+", "+arg2Str);
+            if (op!=AssignmentQuadruple.MUL) writeMipsCode(opStr+" "+resReg+", "+arg2Str);
         } else if (arg2RegType == TEMP){
             String arg2Reg = regAlloc.allocateTempReg(arg2.getName().s);
-            if      (op==instruction.ADD) opStr="add";
-            else if (op==instruction.SUB) opStr="sub";
-            else if (op==instruction.MUL) opStr="mul";
-            else if (op==instruction.LT ) opStr="slt";
-            else if (op==instruction.AND) opStr="and";
+            if      (op==AssignmentQuadruple.ADD) opStr="add";
+            else if (op==AssignmentQuadruple.SUB) opStr="sub";
+            else if (op==AssignmentQuadruple.MUL) opStr="mul";
+            else if (op==AssignmentQuadruple.LT ) opStr="slt";
+            else if (op==AssignmentQuadruple.AND) opStr="and";
 
             writeMipsCode(opStr+" "+resReg+", "+resReg+", "+arg2Reg);
         } else if (arg2RegType == VAR){
             /* 
                 @TODO
             */
+            String arg2Reg = regAlloc.getPramReg(arg2.getName().s);
+            if      (op==AssignmentQuadruple.ADD) opStr="add";
+            else if (op==AssignmentQuadruple.SUB) opStr="sub";
+            else if (op==AssignmentQuadruple.MUL) opStr="mul";
+            else if (op==AssignmentQuadruple.LT ) opStr="slt";
+            else if (op==AssignmentQuadruple.AND) opStr="and";
+
+            writeMipsCode(opStr+" "+resReg+", "+resReg+", "+arg2Reg);
         }
 
         /* 
             Need to do store result reg back into var memory location
         */
         if (resRegType==VAR){
-            /* 
-                @TODO
-            */
+
         }
 
     }
 
 
-    public void generate(ReturnQuadruple instruction){}
+    public void generate(ReturnQuadruple instruction) throws IOException{
+        VariableSymbol arg1 = (VariableSymbol) instruction.getFirstArgument();
+    
+        String arg1Reg = regAlloc.getPramReg(arg1.getName().s);
+        arg1Reg = arg1Reg==null?"$a0":arg1Reg;
+        writeMipsCode("move $v0, "+arg1Reg);
+        writeMipsCode("jr $ra");
+        
+        
+    }
+    
     public void generate(NewObjectQuadruple instruction) throws IOException{}
     public void generate(ArrayAssignmentQuadruple instruction){}
     public void generate(ArrayLengthQuadruple instruction){}

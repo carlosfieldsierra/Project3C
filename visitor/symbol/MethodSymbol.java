@@ -44,8 +44,10 @@ public class MethodSymbol extends Symbol
 		Set the registers for the parameters
 	*/
 	public void setParamRegisters(RegisterAllocator rAllocator){
+		int i =0;
 		for (VariableSymbol var:parameters){
-			var.setRegister(rAllocator.allocateNonMapReg());
+			var.setRegister("$a"+i);
+			i++;
 		}
 	}
 }
