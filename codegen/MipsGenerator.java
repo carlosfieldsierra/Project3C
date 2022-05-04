@@ -3,7 +3,6 @@ import ir.*;
 import visitor.symbol.MethodSymbol;
 import visitor.symbol.*;
 import registerallocator.RegisterAllocator;
-import syntaxtree.IdentifierType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -292,7 +291,6 @@ public class MipsGenerator {
             resReg = regAlloc.allocateTempReg(res.getName().s);
         } else if (resRegType == VAR){
             resReg = regAlloc.getPramReg(res.getName().s);
-            System.out.println(resReg);
         }
         /* 
             Handle arg1 reg
@@ -365,16 +363,8 @@ public class MipsGenerator {
         } else if (arg1RegType == TEMP){
             mipsCode="move "+paramReg+", "+regAlloc.allocateTempReg(arg1.getName().s);
         } else if (arg1RegType == VAR){
-            /* 
-                if(arg1.getOffset() == -1)
-				{
-					temp = "move " + resultReg + ", " + arg1.getRegister() + "\n";
-				}
-				else //Class variable
-				{
-					temp = "lw " + resultReg + ", " + arg1.getOffset() + "($a0)\n";
-				}
-            */
+          String varReg = regAlloc.getPramReg(arg1.getName().s);
+          mipsCode = "move "+paramReg+", "+varReg;
         }
 
         /* 
@@ -393,10 +383,73 @@ public class MipsGenerator {
     /*
         Saves all the registers in the prelouge
     */
-    private void prelouge(){
+    private void prelouge() throws IOException{
+        //Store $ra on stack
+        writeMipsCode("addi $sp, $sp, -100");
+        writeMipsCode("sw $ra, 96($sp)");
+        writeMipsCode("addiu $fp, $sp, 96");
 
+        //Store $s0-$s7 on stack
+        for(int i = 0; i < 8; i++)
+        {
+            writeMipsCode("sw $s" + i + ", " + (92 - (4*i)) + "($sp)");
+        }
+
+        //Store $a0 - $a3 on stack
+        for(int i = 0; i < 4; i++)
+        {
+            writeMipsCode("sw $a" + i + ", " + (60 - (4*i)) + "($sp)");
+        }
+
+        //Store $t0-$t9 on the stack
+        for(int i = 0; i < 10; i++)
+        {
+            writeMipsCode("sw $t" + i + ", " + (44 - (4*i)) + "($sp)");
+        }
+
+        // //Store $v0-$v1 on the stack
+        // for(int i = 0; i < 2; i++)
+        // {
+        //     writeMipsCode("sw $v" + i + ", " + (4 - (4*i)) + "($sp)");
+        // }
     }
     
+
+    /*
+        Loads back all saved registers from memory in
+    */
+    private void epilouge() throws IOException{
+            //Restore $ra from the stack
+            writeMipsCode("lw $ra, 96($sp)");
+            //Restore $s0-$s7 on the stack
+            for(int i = 7; i >= 0; i--)
+            {
+                writeMipsCode("lw $s" + i + ", " + (92 - (4*i)) + "($sp)");
+            }
+            //Restore $a0-$a3 on the stack
+            for(int i = 3; i >= 0; i--)
+            {
+                writeMipsCode("lw $a" + i + ", " + (60 - (4*i)) + "($sp)");
+            }
+            //Restore $t0-$t9 from the stack
+			for(int i = 9; i >= 0; i--)
+			{
+                writeMipsCode("lw $t" + i + ", " + (44 - (4*i)) + "($sp)");
+			}
+			
+            /*
+                Push stack pointer back to old spot
+            */
+            writeMipsCode("addi $sp, $sp, 100");
+            // //Restore $v0-$v1 from the stack
+			// for(int i = 1; i >= 0; i--)
+			// {
+            //     writeMipsCode("lw $v" + i + ", " + (4 - (4*i)) + "($sp)");
+			// }
+
+			
+			
+    }
 
     public void generate(CallQuadruple instruction) throws IOException{
         /* 
@@ -428,9 +481,14 @@ public class MipsGenerator {
         */
         writeMipsCode("# CallQuadruple");
 
+        
         if (methodName.equals("System.out.println")){
+            // Save registers
+            prelouge();
             String mipsCode="jal _system_out_println";
             writeMipsCode(mipsCode);
+            // Load registers
+            epilouge();
         } else if (methodName.equals("System.exit")){
             String mipsCode="jal _system_exit";
             writeMipsCode(mipsCode);
@@ -438,6 +496,8 @@ public class MipsGenerator {
             /* 
                 Prelouge
             */
+            writeMipsCode("# Prelouge");
+            prelouge();
             
 
             /* 
@@ -455,9 +515,11 @@ public class MipsGenerator {
             
             writeMipsCode("jal "+methodName);
 
-            /* 
+             /* 
                Epilouge
             */
+            writeMipsCode("# Epilouge");
+            epilouge();
         }
         
         /* 
@@ -596,11 +658,11 @@ public class MipsGenerator {
     }
     
     public void generate(NewObjectQuadruple instruction) throws IOException{}
-    public void generate(ArrayAssignmentQuadruple instruction){}
-    public void generate(ArrayLengthQuadruple instruction){}
-    public void generate(IfQuadruple instruction){}
-    public void generate(NewArrayQuadruple instruction){}
-    public void generate(ArrayLookupQuadruple instruction){}
-    public void generate(GotoQuadruple instruction){}
-    public void generate(UnaryAssignmentQuadruple instruction){}
+    public void generate(ArrayAssignmentQuadruple instruction) throws IOException{}
+    public void generate(ArrayLengthQuadruple instruction) throws IOException{}
+    public void generate(IfQuadruple instruction) throws IOException{}
+    public void generate(NewArrayQuadruple instruction) throws IOException{}
+    public void generate(ArrayLookupQuadruple instruction) throws IOException{}
+    public void generate(GotoQuadruple instruction) throws IOException{}
+    public void generate(UnaryAssignmentQuadruple instruction) throws IOException{}
 }
