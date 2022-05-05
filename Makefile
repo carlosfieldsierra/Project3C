@@ -5,6 +5,7 @@ all:
 	java -jar java-cup-11b.jar -interface -parser MiniJavaParser minijava.cup
 	javac MiniJavaC.java
 	java MiniJavaC milestones/$(file).java
+	clear
 	java -jar Mars4_5.jar mips/$(file).asm
 	
 
