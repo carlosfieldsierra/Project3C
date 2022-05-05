@@ -4,7 +4,7 @@ all:
 	java -jar jflex-full-1.8.2.jar minijava.flex
 	java -jar java-cup-11b.jar -interface -parser MiniJavaParser minijava.cup
 	javac MiniJavaC.java
-	java MiniJavaC test/$(file).java
+	java MiniJavaC milestones/$(file).java
 	java -jar Mars4_5.jar mips/$(file).asm
 	
 

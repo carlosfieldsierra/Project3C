@@ -35,6 +35,7 @@ public class MipsGenerator {
     */
     private int paramNum = 0;
     private final int MAX_PARAM_NUM = 4;
+ 
 
     /* 
         Reg Types
@@ -42,6 +43,12 @@ public class MipsGenerator {
     private final int TEMP = 0;
     private final int CONST = 1;
     private final int VAR = 2;
+    /* 
+        If stament on
+    */
+    ArrayList<Quadruple> irList ;
+
+    HashMap<Quadruple,String> labelMap = new HashMap<>(); 
     
 
 
@@ -92,7 +99,7 @@ public class MipsGenerator {
             Put main first
         */
         // Methods Ir
-        ArrayList<Quadruple> irList = methodsIR.get("main");
+        irList = methodsIR.get("main");
         /* 
             Write method label
         */
@@ -103,15 +110,19 @@ public class MipsGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("main");
         /* 
             Generate mips on method per method basis
         */
         for (Quadruple quadruple: irList){
-            System.out.println("\t\t"+quadruple.getClass());
-            System.out.println("\t\t"+quadruple+"\n");
+            if (labelMap.containsKey(quadruple)){
+                String labelName = labelMap.get(quadruple);
+                try {
+                    writeMipsCode(labelName+": ");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             methodFactory(quadruple);
-            // System.out.println("\n");
         }
 
 
@@ -138,15 +149,24 @@ public class MipsGenerator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println(methodNameKey.split("_").length>1?methodNameKey.split("_")[1]:methodNameKey);
             /* 
                 Generate mips on method per method basis
             */
             for (Quadruple quadruple: irList){
-                System.out.println("\t\t"+quadruple.getClass());
-                System.out.println("\t\t"+quadruple+"\n");
+        
+                /* 
+                    Write Labels
+                */
+                if (labelMap.containsKey(quadruple)){
+                    String labelName = labelMap.get(quadruple);
+                    try {
+                        writeMipsCode(labelName+": ");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 methodFactory(quadruple);
-                // System.out.println("\n");
+
             }
         }   
     
@@ -300,16 +320,7 @@ public class MipsGenerator {
         } else if (arg1RegType == TEMP){
             mipsCode = "move "+resReg+", "+regAlloc.allocateTempReg(arg1.getName().s);
         } else if (arg1RegType == VAR){
-            /* 
-                if(arg1.getOffset() == -1)
-				{
-					temp = "move " + resultReg + ", " + arg1.getRegister() + "\n";
-				}
-				else //Class variable
-				{
-					temp = "lw " + resultReg + ", " + arg1.getOffset() + "($a0)\n";
-				}
-            */
+            mipsCode = "move "+resReg+", "+regAlloc.getPramReg(arg1.getName().s);
             
         }
 
@@ -323,18 +334,7 @@ public class MipsGenerator {
             If a variable result then write result reg back into memory
         */
         if (resRegType==VAR){
-            /*
             
-				if(result.getOffset() == -1)
-				{
-					temp = "move " + result.getRegister() + ", " + resultReg + "\n";
-				}
-				else //Class variable
-				{
-					temp = "sw " + resultReg + ", " + result.getOffset() + "($a0)\n";
-				}
-				bw.write(temp, 0, temp.length());
-            */
         }
 
     
@@ -407,7 +407,7 @@ public class MipsGenerator {
             writeMipsCode("sw $t" + i + ", " + (44 - (4*i)) + "($sp)");
         }
 
-        // //Store $v0-$v1 on the stack
+        //Store $v0-$v1 on the stack
         // for(int i = 0; i < 2; i++)
         // {
         //     writeMipsCode("sw $v" + i + ", " + (4 - (4*i)) + "($sp)");
@@ -657,12 +657,49 @@ public class MipsGenerator {
         
     }
     
+    private void addToLabelMap(int index,String labelName){
+        Quadruple q = irList.get(index);
+       
+        labelMap.put(q,labelName);
+    }
+    
+    public void generate(IfQuadruple instruction) throws IOException{
+        Symbol arg1 = instruction.getFirstArgument();
+        int arg1RegType = getRegType(arg1.getName().s);
+        Label label  = (Label) instruction.getResult();
+        String labelName = "L"+label.getName().s+label.hashCode();
+        addToLabelMap(label.getIndex(),labelName);
+        // Comment
+        writeMipsCode("# IfQuadruple");
+        /* 
+            Handle arg1
+        */
+        if (arg1RegType==CONST){
+
+        } else if (arg1RegType==TEMP){
+            String arg1Reg = regAlloc.getPramReg(arg1.getName().s);
+            writeMipsCode("beq "+arg1Reg+", $zero, "+labelName);
+        } else if (arg1RegType==VAR){
+
+        }
+        
+
+
+
+    }
+
+
+    public void generate(GotoQuadruple instruction) throws IOException{
+        Label label = (Label) instruction.getResult();
+        String labelName = "L"+label.getName().s+label.hashCode();
+        writeMipsCode("j "+labelName);
+        addToLabelMap(label.getIndex(), labelName);
+    }
+   
     public void generate(NewObjectQuadruple instruction) throws IOException{}
     public void generate(ArrayAssignmentQuadruple instruction) throws IOException{}
     public void generate(ArrayLengthQuadruple instruction) throws IOException{}
-    public void generate(IfQuadruple instruction) throws IOException{}
     public void generate(NewArrayQuadruple instruction) throws IOException{}
     public void generate(ArrayLookupQuadruple instruction) throws IOException{}
-    public void generate(GotoQuadruple instruction) throws IOException{}
     public void generate(UnaryAssignmentQuadruple instruction) throws IOException{}
 }

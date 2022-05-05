@@ -1,7 +1,77 @@
-addi $t0, $zero, 9
-add $a0,$zero,$t0
-jal _system_out_println
-jal _system_exit
+main:
+	# CopyQuadruple
+	li $t0, 1
+	# CopyQuadruple
+	li $t1, 2
+	# CopyQuadruple
+	li $t2, 3
+	# AssignmentQuadruple
+	move $t3, $t1
+	mul $t3, $t3, $t2
+	# AssignmentQuadruple
+	move $t4, $t0
+	add $t4, $t4, $t3
+	# CopyQuadruple
+	li $t5, 1
+	# AssignmentQuadruple
+	move $t6, $t4
+	add $t6, $t6, $t5
+	# ParameterQuadruple
+	move $a0, $t6
+	# CallQuadruple
+	addi $sp, $sp, -100
+	sw $ra, 96($sp)
+	addiu $fp, $sp, 96
+	sw $s0, 92($sp)
+	sw $s1, 88($sp)
+	sw $s2, 84($sp)
+	sw $s3, 80($sp)
+	sw $s4, 76($sp)
+	sw $s5, 72($sp)
+	sw $s6, 68($sp)
+	sw $s7, 64($sp)
+	sw $a0, 60($sp)
+	sw $a1, 56($sp)
+	sw $a2, 52($sp)
+	sw $a3, 48($sp)
+	sw $t0, 44($sp)
+	sw $t1, 40($sp)
+	sw $t2, 36($sp)
+	sw $t3, 32($sp)
+	sw $t4, 28($sp)
+	sw $t5, 24($sp)
+	sw $t6, 20($sp)
+	sw $t7, 16($sp)
+	sw $t8, 12($sp)
+	sw $t9, 8($sp)
+	jal _system_out_println
+	lw $ra, 96($sp)
+	lw $s7, 64($sp)
+	lw $s6, 68($sp)
+	lw $s5, 72($sp)
+	lw $s4, 76($sp)
+	lw $s3, 80($sp)
+	lw $s2, 84($sp)
+	lw $s1, 88($sp)
+	lw $s0, 92($sp)
+	lw $a3, 48($sp)
+	lw $a2, 52($sp)
+	lw $a1, 56($sp)
+	lw $a0, 60($sp)
+	lw $t9, 8($sp)
+	lw $t8, 12($sp)
+	lw $t7, 16($sp)
+	lw $t6, 20($sp)
+	lw $t5, 24($sp)
+	lw $t4, 28($sp)
+	lw $t3, 32($sp)
+	lw $t2, 36($sp)
+	lw $t1, 40($sp)
+	lw $t0, 44($sp)
+	addi $sp, $sp, 100
+	# CallQuadruple
+	jal _system_exit
+
 # main is testing the functions I've provided. You will include this code at the end
 # of your output file so that you may call these system services.
 

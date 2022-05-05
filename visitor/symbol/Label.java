@@ -11,6 +11,9 @@ public class Label extends Symbol {
 		index = i;
 		name = new Identifier(String.valueOf(i));
 	}
+	public int getIndex(){
+		return index;
+	}
 
 	public String toString() {
 		return name.s;
